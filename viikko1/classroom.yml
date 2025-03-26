@@ -1,0 +1,90 @@
+name: Autograding Tests
+on:
+  - push
+  - workflow_dispatch
+  - repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    ### STEPS ###
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+    - name: Test Quest 1
+      id: quest1_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Quest 1"
+        command: ./gradlew test --tests Quest1Test
+        timeout: 5
+        max-score: 1
+    - name: Test Quest 2
+      id: quest2_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Quest 2"
+        command: ./gradlew test --tests Quest2Test
+        timeout: 5
+        max-score: 1
+    - name: Test Quest 3
+      id: quest3_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Quest 3"
+        command: ./gradlew test --tests Quest3Test
+        timeout: 5
+        max-score: 1
+    - name: Test Quest 4
+      id: quest4_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Quest 4"
+        command: ./gradlew test --tests Quest4Test
+        timeout: 5
+        max-score: 1
+    - name: Test Quest 5
+      id: quest5_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Quest 5"
+        command: ./gradlew test --tests Quest5Test
+        timeout: 5
+        max-score: 1
+    - name: Test Quest 6
+      id: quest6_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Quest 6"
+        command: ./gradlew test --tests Quest6Test
+        timeout: 5
+        max-score: 1
+            - name: Debug total score
+      run: |
+        echo "Individual test results:"
+        echo "Quest1: ${{steps.quest1_test.outputs.result}}"
+        echo "Quest2: ${{steps.quest2_test.outputs.result}}"
+        echo "Quest3: ${{steps.quest3_test.outputs.result}}"
+        echo "Quest4: ${{steps.quest4_test.outputs.result}}"
+        echo "Quest5: ${{steps.quest5_test.outputs.result}}"
+        echo "Quest6: ${{steps.quest6_test.outputs.result}}"
+
+    - name: Autograding Report
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env: 
+        QUEST1_TEST_RESULTS: "${{steps.quest1_test.outputs.result}}"
+        QUEST2_TEST_RESULTS: "${{steps.quest2_test.outputs.result}}"
+        QUEST3_TEST_RESULTS: "${{steps.quest3_test.outputs.result}}"
+        QUEST4_TEST_RESULTS: "${{steps.quest4_test.outputs.result}}"
+        QUEST5_TEST_RESULTS: "${{steps.quest5_test.outputs.result}}"
+        QUEST6_TEST_RESULTS: "${{steps.quest6_test.outputs.result}}"
+      with:
+        runners: quest1_test,quest2_test,quest3_test,quest4_test,quest5_test,quest6_test

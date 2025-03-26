@@ -1,0 +1,77 @@
+name: Autograding Tests
+
+on:
+  - push
+  - workflow_dispatch
+  - repository_dispatch
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Test Set Operations
+      id: set_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "SetOperations Class"
+        command: gradle test --tests exercises.SetOperationsTest
+        timeout: 5
+        max-score: 1
+
+    - name: Test Character Counter
+      id: char_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "CharacterCounter Class"
+        command: gradle test --tests exercises.CharacterCounterTest
+        timeout: 5
+        max-score: 2
+
+    - name: Test Data Organizer
+      id: data_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "DataOrganizer Class"
+        command: gradle test --tests exercises.DataOrganizerTest
+        timeout: 5
+        max-score: 2
+
+    - name: Test Fibonacci
+      id: fibo_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Fibonacci Class"
+        command: gradle test --tests exercises.FibonacciTest
+        timeout: 5
+        max-score: 3
+    - name: Debug total score
+      run: |
+        echo "Individual test results:"
+        echo "SetOperations: ${{steps.set_test.outputs.result}}"
+        echo "CharacterCounter: ${{steps.char_test.outputs.result}}"
+        echo "DataOrganizer: ${{steps.data_test.outputs.result}}"
+        echo "Fibonacci: ${{steps.fibo_test.outputs.result}}"
+
+
+    - name: Autograding Report
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env: 
+        SET_TEST_RESULTS: "${{steps.set_test.outputs.result}}"
+        CHAR_TEST_RESULTS: "${{steps.char_test.outputs.result}}"
+        DATA_TEST_RESULTS: "${{steps.data_test.outputs.result}}"
+        FIBO_TEST_RESULTS: "${{steps.fibo_test.outputs.result}}"
+      with:
+        runners: set_test,char_test,data_test,fibo_test

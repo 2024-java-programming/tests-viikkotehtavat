@@ -1,0 +1,84 @@
+name: Autograding Tests
+
+on:
+  - push
+  - workflow_dispatch
+  - repository_dispatch
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - uses: actions/checkout@v4
+
+    # Setting up JDK 21 for the tests
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    # Test for Shape Drawing System
+    - name: Test Shape Drawing System
+      id: shape_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Shape Drawing System"
+        command: gradle test --tests exercises.ShapeTest
+        timeout: 5
+        max-score: 1
+
+    # Test for Media Player System
+    - name: Test Media Player System
+      id: file_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Media Player System"
+        command: gradle test --tests exercises.FileTest
+        timeout: 5
+        max-score: 1
+
+    # Test for Notification System
+    - name: Test Notification System
+      id: notification_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Notification System"
+        command: gradle test --tests exercises.NotificationTest
+        timeout: 5
+        max-score: 2
+
+    # Test for Shopping List
+    - name: Test Shopping List
+      id: shopping_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Shopping List"
+        command: gradle test --tests exercises.ShoppingListTest
+        timeout: 5
+        max-score: 3
+    - name: Debug total score
+      run: |
+        echo "Individual test results:"
+        echo "Shape: ${{steps.shape_test.outputs.result}}"
+        echo "File: ${{steps.file_test.outputs.result}}"
+        echo "Notification: ${{steps.notification_test.outputs.result}}"
+        echo "Shopping: ${{steps.shopping_test.outputs.result}}"
+
+
+    # Collect and report test results for all assignments
+    - name: Autograding Report
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        SHAPE_TEST_RESULTS: "${{steps.shape_test.outputs.result}}"
+        FILE_TEST_RESULTS: "${{steps.file_test.outputs.result}}"
+        NOTIFICATION_TEST_RESULTS: "${{steps.notification_test.outputs.result}}"
+        SHOPPING_TEST_RESULTS: "${{steps.shopping_test.outputs.result}}"
+      with:
+        runners: shape_test,file_test,notification_test,shopping_test

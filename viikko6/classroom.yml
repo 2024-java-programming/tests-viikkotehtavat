@@ -1,0 +1,64 @@
+name: Autograding Tests
+
+on:
+  - push
+  - workflow_dispatch
+  - repository_dispatch
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Test Singleton Pattern
+      id: singleton_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "SingletonPatternTest"
+        command: gradle test --tests designpatterns.SingletonPatternTest
+        timeout: 5
+        max-score: 1
+
+    - name: Test Builder Pattern
+      id: builder_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "CalculatorBuilderTest"
+        command: gradle test --tests designpatterns.CalculatorBuilderTest
+        timeout: 5
+        max-score: 1
+
+    - name: Test Factory Method Pattern
+      id: factory_test
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "ShapeFactoryTest"
+        command: gradle test --tests designpatterns.ShapeFactoryTest
+        timeout: 5
+        max-score: 2
+    - name: Debug total score
+      run: |
+        echo "Individual test results:"
+        echo "SingletonPattern: ${{steps.singleton_test.outputs.result}}"
+        echo "CalculatorBuilder: ${{steps.builder_test.outputs.result}}"
+        echo "ShapeFactory: ${{steps.factory_test.outputs.result}}"
+    - name: Autograding Report
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env: 
+        SINGLETON_TEST_RESULTS: "${{steps.singleton_test.outputs.result}}"
+        BUILDER_TEST_RESULTS: "${{steps.builder_test.outputs.result}}"
+        FACTORY_TEST_RESULTS: "${{steps.factory_test.outputs.result}}"
+      with:
+        runners: singleton_test,builder_test,factory_test
